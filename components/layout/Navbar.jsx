@@ -4,85 +4,97 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { Search } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
+import { ui } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-const navLinks = [
-  { href: "/cases", label: "Case Library" },
-  { href: "/framework", label: "Framework" },
-  { href: "/about", label: "About" },
+const NAV_LINKS = [
+  { key: "dashboard",  href: "/" },
+  { key: "frameworks", href: "/frameworks" },
+  { key: "about",      href: "/about" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [scrolled, setScrolled] = useState(false);
+  const { lang, setLang } = useLanguage();
+  const [scrolled, setScrolled]     = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Add a subtle border when scrolled
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onScroll = () => setScrolled(window.scrollY > 16);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close mobile menu on route change
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
+
+  const isActive = (href) =>
+    href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
     <header
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        scrolled
-          ? "bg-white/90 backdrop-blur-md border-b border-border"
-          : "bg-transparent"
+        scrolled ? "bg-white/92 backdrop-blur-md border-b border-border" : "bg-transparent"
       )}
     >
-      <nav className="container-wide flex items-center justify-between h-16">
-        {/* Logo / Wordmark */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <span className="text-sm font-semibold tracking-tight">
-            Why People Buy
+      <div className="container-wide flex items-center justify-between h-14">
+
+        {/* Logo */}
+        <Link href="/" className="flex flex-col leading-none">
+          <span className="text-sm font-semibold tracking-tight">WPB Lab</span>
+          <span className="text-[10px] text-muted-foreground tracking-wide">
+            Marketing Intelligence Lab
           </span>
         </Link>
 
-        {/* Desktop navigation */}
-        <ul className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <li key={link.href}>
-              <Link
-                href={link.href}
-                className={cn(
-                  "text-sm transition-colors duration-200",
-                  pathname === link.href || pathname.startsWith(link.href + "/")
-                    ? "text-foreground font-medium"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {link.label}
-              </Link>
-            </li>
+        {/* Desktop nav */}
+        <nav className="hidden md:flex items-center gap-6">
+          {NAV_LINKS.map(({ key, href }) => (
+            <Link
+              key={key}
+              href={href}
+              className={cn(
+                "text-sm transition-colors duration-150",
+                isActive(href)
+                  ? "text-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {ui.nav[key][lang]}
+            </Link>
           ))}
-        </ul>
+        </nav>
 
-        {/* CTA button (desktop) */}
-        <div className="hidden md:block">
+        {/* Right controls */}
+        <div className="hidden md:flex items-center gap-4">
+          {/* Search icon */}
           <Link
-            href="/cases"
-            className="text-sm px-4 py-2 border border-foreground rounded-full hover:bg-foreground hover:text-background transition-all duration-200"
+            href="/search"
+            aria-label={ui.nav.search[lang]}
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
-            Explore Cases
+            <Search size={16} />
           </Link>
+
+          {/* Language toggle */}
+          <button
+            onClick={() => setLang(lang === "en" ? "zh" : "en")}
+            className="text-xs font-medium border border-border rounded-full px-3 py-1 hover:border-foreground transition-colors"
+          >
+            {lang === "en" ? "中文" : "EN"}
+          </button>
         </div>
 
         {/* Mobile hamburger */}
         <button
-          className="md:hidden flex flex-col gap-1.5 p-2"
+          className="md:hidden flex flex-col gap-[5px] p-2"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
         >
           <motion.span
-            animate={mobileOpen ? { rotate: 45, y: 8 } : { rotate: 0, y: 0 }}
+            animate={mobileOpen ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }}
             className="block w-5 h-px bg-foreground origin-center"
           />
           <motion.span
@@ -90,11 +102,11 @@ export default function Navbar() {
             className="block w-5 h-px bg-foreground"
           />
           <motion.span
-            animate={mobileOpen ? { rotate: -45, y: -8 } : { rotate: 0, y: 0 }}
+            animate={mobileOpen ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }}
             className="block w-5 h-px bg-foreground origin-center"
           />
         </button>
-      </nav>
+      </div>
 
       {/* Mobile menu */}
       <AnimatePresence>
@@ -105,23 +117,31 @@ export default function Navbar() {
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden bg-white border-b border-border overflow-hidden"
           >
-            <ul className="container-wide py-6 flex flex-col gap-5">
-              {navLinks.map((link, i) => (
-                <motion.li
-                  key={link.href}
-                  initial={{ opacity: 0, x: -10 }}
+            <div className="container-wide py-5 flex flex-col gap-4">
+              {NAV_LINKS.map(({ key, href }, i) => (
+                <motion.div
+                  key={key}
+                  initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
+                  transition={{ delay: i * 0.06 }}
                 >
-                  <Link
-                    href={link.href}
-                    className="text-lg font-light text-foreground"
-                  >
-                    {link.label}
+                  <Link href={href} className="text-base text-foreground">
+                    {ui.nav[key][lang]}
                   </Link>
-                </motion.li>
+                </motion.div>
               ))}
-            </ul>
+              <div className="flex items-center gap-4 pt-2 border-t border-border">
+                <Link href="/search" className="text-sm text-muted-foreground flex items-center gap-1.5">
+                  <Search size={14} /> {ui.nav.search[lang]}
+                </Link>
+                <button
+                  onClick={() => setLang(lang === "en" ? "zh" : "en")}
+                  className="text-xs border border-border rounded-full px-3 py-1"
+                >
+                  {lang === "en" ? "中文" : "EN"}
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

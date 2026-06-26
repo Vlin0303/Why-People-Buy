@@ -1,9 +1,9 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
+import Providers from "./Providers";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
-// Load Inter with the weights we need
 const inter = Inter({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
@@ -14,28 +14,19 @@ const inter = Inter({
 export const metadata = {
   title: "Why People Buy — Marketing Intelligence Lab",
   description:
-    "A marketing intelligence lab exploring why people choose, love, and stay with brands. Brand breakdowns through consumer psychology, market strategy, and growth logic.",
-  keywords: [
-    "marketing",
-    "consumer psychology",
-    "brand strategy",
-    "market research",
-    "growth marketing",
-  ],
-  openGraph: {
-    title: "Why People Buy",
-    description: "A marketing intelligence lab exploring brand strategy and consumer psychology.",
-    type: "website",
-  },
+    "Decoding the psychology behind consumer decisions. Analyzing brands, campaigns, and cultural phenomena across China and North America.",
+  keywords: ["marketing", "consumer psychology", "brand strategy", "China market", "growth marketing"],
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={inter.variable}>
       <body className="bg-background text-foreground font-sans antialiased">
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
+        <Providers>
+          <Navbar />
+          <div className="min-h-screen">{children}</div>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );
